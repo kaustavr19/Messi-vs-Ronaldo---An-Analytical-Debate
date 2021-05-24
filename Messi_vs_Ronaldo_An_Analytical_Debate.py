@@ -14,7 +14,109 @@ Original file is located at
 3. The Final comparison
 """
 
+#import required libraries
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+from sklearn.preprocessing import MinMaxScaler
+
+#plotting libraries
+import seaborn as sns
+import plotly.express as px
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from matplotlib.patches import Arc
+from plotly.subplots import make_subplots
+
+"""## Getting the Data
+
+### Cristiano Ronaldo
+
+#### Season-wise Data
+"""
+
+#scraping Cristiano's player stats:
+cris_scrape_url = "https://understat.com/player/2371"
+page_connect = urlopen(cris_scrape_url)
+page_html = BeautifulSoup(page_connect, "html.parser")
+
+json_raw_string = page_html.findAll(name="script")[1].text
+start_ind = json_raw_string.index("\\")
+stop_ind = json_raw_string.index("')")
+
+json_data = json_raw_string[start_ind : stop_ind]
+json_data = json_data.encode("utf8").decode("unicode_escape")
+
+cris_season_wise_meta_df = pd.json_normalize(json.loads(json_data)["season"])
+cris_season_wise_meta_df.insert(0, "Player", "Cristiano")
+
+cris_season_wise_meta_df
+
+"""#### Shots Data"""
+
+#scrape cristiano shots data
+json_raw_string = page_html.findAll(name="script")[3].text
+start_ind = json_raw_string.index("\\")
+stop_ind = json_raw_string.index("')")
+
+json_data = json_raw_string[start_ind : stop_ind]
+json_data = json_data.encode("utf8").decode("unicode_escape")
+
+cris_shots_df = pd.json_normalize(json.loads(json_data))
+cris_shots_df.insert(0, "Player", "Cristiano")
+
+cris_shots_df
+
+"""### Messi
+
+### Season-wise Data
+"""
+
+#scraping Messi's player stats:
+messi_scrape_url = "https://understat.com/player/2097"
+page_connect = urlopen(messi_scrape_url)
+page_html = BeautifulSoup(page_connect, "html.parser")
+
+json_raw_string = page_html.findAll(name="script")[1].text
+start_ind = json_raw_string.index("\\")
+stop_ind = json_raw_string.index("')")
+
+json_data = json_raw_string[start_ind : stop_ind]
+json_data = json_data.encode("utf8").decode("unicode_escape")
+
+messi_season_wise_meta_df = pd.json_normalize(json.loads(json_data)["season"])
+messi_season_wise_meta_df.insert(0, "Player", "Messi")
+
+messi_season_wise_meta_df
+
+"""#### Shots Data"""
+
+#scrape messi'sshots data
+json_raw_string = page_html.findAll(name="script")[3].text
+start_ind = json_raw_string.index("\\")
+stop_ind = json_raw_string.index("')")
+
+json_data = json_raw_string[start_ind : stop_ind]
+json_data = json_data.encode("utf8").decode("unicode_escape")
+
+messi_shots_df = pd.json_normalize(json.loads(json_data))
+messi_shots_df.insert(0, "Player", "Messi")
+
+messi_shots_df
+
+"""## Final Season-level & Shots Data
+
+### Joint Season-wise Data
+"""
+
+season_wise_meta_df = cris_season_wise_meta_df.append(messi_season_wise_meta_df)
+season_wise_meta_df
+
+"""### Joint Shots Data"""
+
+shots_df = cris_shots_df.append(messi_shots_df)
+shots_df
+
+shots_df.describe()
+
