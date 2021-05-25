@@ -68,9 +68,9 @@ cris_shots_df.insert(0, "Player", "Cristiano")
 
 cris_shots_df
 
-"""### Messi
+"""###Messi
 
-### Season-wise Data
+#### Season-wise Data
 """
 
 #scraping Messi's player stats:
@@ -119,4 +119,145 @@ shots_df = cris_shots_df.append(messi_shots_df)
 shots_df
 
 shots_df.describe()
+
+"""## Data Cleaning & EDA
+
+### On Season-wise Data
+
+#### Numerical EDA
+"""
+
+season_wise_meta_df.info()
+
+season_wise_meta_df = season_wise_meta_df.apply(pd.to_numeric, errors="ignore")
+
+season_wise_meta_df = season_wise_meta_df.round(2)
+
+season_wise_meta_df.describe().round(1)
+
+season_wise_meta_df.groupby(["Player"]).describe().round(1)
+
+season_wise_meta_df.groupby(["Player","team"])["goals"].sum()
+
+"""#### Visual EDA"""
+
+num_cols = season_wise_meta_df.select_dtypes(exclude=[object]).columns
+
+num_cols
+
+num_cols.__len__()
+
+season_wise_meta_df.groupby(["Player"])[num_cols].sum()
+
+total_df = season_wise_meta_df.groupby(["Player"])[num_cols].sum().round(1).reset_index()
+
+"""##### EDA on Totals(Conolidated Data for all seasons per player)"""
+
+i = j =1
+
+#creating an empty subplot:
+fig = make_subplots(rows = 4, cols = 4,
+                    shared_xaxes = False,
+                    vertical_spacing = 0.1,
+                    subplot_titles = num_cols)
+
+#Adding bar plot for goals conceded in all subplots:
+for col in num_cols:
+  fig.add_trace(go.Bar(x = total_df["Player"],
+                       y = total_df[col],
+                       text = total_df[col],
+                       textposition = "inside",
+                       name = col),
+                row = i, col = j)
+  j += 1
+  if j>4:
+    j = 1
+    i+=1
+  if i>4:
+    i = 1
+fig.update_layout(height = 800)
+fig.show()
+
+"""xGChain --> Calculating xG for possessions that lead to a shot where the player was involved at least once in that possession, **INCLUDING** the final pass or the shot. \\
+xGBuildup --> Calculating xG for possessions that lead to a shot where the player was involved at least once in that possession, **EXCLUDING** the final pass or the shot. \\
+
+##### EDA on Season-wise Stats (Consolidated data per season per player)
+"""
+
+i = j =1
+
+#creating an empty subplot:
+fig = make_subplots(rows = 4, cols = 4,
+                    shared_xaxes = False,
+                    vertical_spacing = 0.1,
+                    subplot_titles = num_cols)
+
+#Adding bar plot for goals conceded in all subplots:
+for col in num_cols:
+  fig.add_trace(go.Bar(x = season_wise_meta_df["season"],
+                       y = season_wise_meta_df[col],
+                       text = season_wise_meta_df[col],
+                       textposition = "inside",
+                       name = col),
+                row = i, col = j)
+  j += 1
+  if j>4:
+    j = 1
+    i+=1
+  if i>4:
+    i = 1
+fig.update_layout(height = 800, barmode = "stack")
+fig.show()
+
+"""## On Shots Data
+
+### Numerical EDA
+"""
+
+shots_df.info()
+
+shots_df = shots_df.apply(pd.to_numeric, errors = "ignore")
+
+shots_df = shots_df.round(2)
+
+shots_df.describe().round(1)
+
+shots_df.groupby(["Player"]).describe().round(1)
+
+shots_df.groupby(["Player", "season"]).describe().round(1)
+
+"""### Visual EDA
+
+#### EDA on Totals
+"""
+
+shots_df.head()
+
+px.histogram(data_frame=shots_df, x = "result", color="Player",
+             barmode = "group", title = "Shot Result Comparison",
+             labels = {"result":"","count":""})
+
+px.histogram(data_frame=shots_df, x = "situation", color="Player",
+             barmode = "group", title = "Shot Play-pattern Comparison",
+             labels = {"situation":"","count":""})
+
+px.histogram(data_frame=shots_df, x="player_assisted", color="Player",
+             barmode="group", title="Assisting Player Comparison",
+             labels={"result": "", "count": ""})
+
+"""Interesting to note that both players have had a fruitful relationship with their respective left-backs!"""
+
+px.histogram(data_frame=shots_df, x="h_a", color="Player",
+             barmode="group", title="Home-Away Shots Comparison",
+             labels={"result": "", "count": ""})
+
+px.histogram(data_frame=shots_df[shots_df["result"] == "Goal"],
+             x="h_a", color="Player",
+             barmode="group", title="Home-Away Goals Comparison",
+             labels={"result": "", "count": ""})
+
+px.histogram(data_frame=shots_df[shots_df["result"] == "MissedShots"], 
+             x="h_a", color="Player",
+             barmode="group", title="Home-Away Missed Shots Comparison",
+             labels={"result": "", "count": ""})
 
